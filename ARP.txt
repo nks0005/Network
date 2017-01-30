@@ -1,0 +1,57 @@
+@ ARP
+ Address Resolution Protocol의 약자입니다. 
+ 즉 주소 결정 프로토콜입니다. 
+ 주소 결정 프로토콜은 로컬 네트워크에서 IP 주소와 MAC 주소를 연관 짓고 IP 주소의 중복들 테스트하는 역할을 합니다.  
+ ARP는 상대적으로 고유한 값을 가지며 오직 로컬에서만 실행됩니다.
+ ARP 패킷은 IP 헤더를 포함 하지 않기 때문에 TCP 네트워크 트래픽에 있는 대부분의 패킷과 비교해볼때 고유한 값을 가집니다.
+ 이런 특징은 ARP 패킷이 라우팅되지 않는 패킷이라는 의미입니다.
+
+@ ARP 요청/응답
+ ARP는 간단한 요청과 응답으로 구성된다. 
+% 호스트는 대상 IP 주소를 포함하는 ARP 브로드 캐스트를 전송한다.
+ ARP 요청 -> ARP 응답
+
+@ ARP 패킷 구조 분석
+ ARP 패킷은 두가지가 있다. 요청 패킷과 응답 패킷이다. 
+# Hardware type : 하드웨어 유형
+ 사용 중인 물리 주소나 데이터 링크 유형을 정의한다. 
+ 물리 유형이 1일시, 이더넷에 할당되었다는 것을 알 수 있다.
+ http://www.iana.org/assignments/icmp-parameters/icmp-parameters.xml
+
+# Protocol type : 프로토콜 유형
+ 이 필드는 사용되는 프로토콜 주소 유형을 표시한다. 
+ 이 필드는 표준 프로토콜 ID 값을 사용한다. 
+ http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
+
+# Hardward size : 하드웨어 주소 길이
+ 이 필드는 패킷의 물리 주소 길이를 바이트로 정의한다.
+# Protocol size : 프로토콜 주소 길이
+ 이 필드는 패킷에 사용되는 프로토콜의 물리주소의 길이를 바이트로 정의한다.
+
+# Opcode 
+ 이 필드는 응답/요청,주소 해결 유형을 정의한다. 
+ 1 - ARP request
+ 2 - ARP reply 
+ 3 - RARP request
+ 4 - RAPR reply
+% RARP는 MAC 주소로 부터 네트워크 주소를 얻게 해주는 프로세스 입니다.
+
+# Sender MAC address : 발신자 하드웨어 주소
+ 이 필드는 발신자의 하드웨어 주소를 나타냅니다.
+# Sender IP address : 발신자의 프로토콜 주소
+ 이 필드는 프로토콜이나 네트워크, 패킷을 전송하는 장치의 주소를 나타냅니다.
+# Target MAC address : 대상 하드웨어 주소
+ 이 필드는 대상의 하드웨어 주소를 나타냅니다. ARP 요청에서 이 필드는 0으로 채워집니다.
+# Target IP address : 대상 프로토콜 주소
+ 대상의 프로토콜이나 네트워크 주소를 표시하며 발생한 장비의 주소를 포함합니다.
+# ARP 트래픽의 필터링
+ ARP 트래픽을 위한 필터 구문은 간단하게 ARP이다. 
+ 아래 표는 ARP 트래픽을 필터링 할때 쓰일 수 있는 몇 가지 필터링 식이다.
+arp.opcode == 0x0001 
+ ARP 요청
+arp.opcode == 0x0002
+ ARP 응답
+arp.src.hw_mac == 00:11:11:11:11:11
+ 발신 물리주소가 00:11:11:11:11:11 인 패킷
+(arp.src.hw_mac == 00:11:11:11:11:1) && (arp.opcode == 0x0002) 
+ 발신 물리주소가 00:11:11:11:11:11 인 ARP 응답

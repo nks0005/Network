@@ -1,0 +1,76 @@
+@ DNS
+ 문자로 된 호스트 이름(www.google.com)을 숫자로 IP 주소를 결정하는데 사용된다.
+ DNS 서버 간의 정보를 전송하기 위해 사용된다.
+ IP 주소와 관련된 호스트 이름을 식별하는데 사용된다. 
+  % 만일 DNS가 고장난다면, 호스트들은 서로의 위치를 알아낼 수 없게 될것이다.
+
+@ DNS의 실행 방식
+ DNS의 기본 포트는 53번이며, UDP와 TCP를 통해 실행 할 수 있다.
+ 일반적으로 UDP를 이용하여 쿼리와 응답을 볼 수 있지만, 크기가 큰 DNS 쿼리들은 TCP를 이용해야 합니다.
+ DNS는 RFC1035를 따라서 UDP를 통한 패킷 페이로드를 512바이트로 제한합니다.
+ 만약 512바이트 이상의 공간을 요구한다면 단편플래그 비트가 전송됩니다.
+ 단편플래그 비트를 전송하는 이유는 더 큰 패킷의 크기를 허용하는 TCP를 사용해 DNS 쿼리를 다시 전송하기 위함
+
+@ 일반적인 DNS 쿼리/응답 분석
+% 클라이언트는 호스트에 대한 IP 주소를 얻기 위해 DNS 서버에 쿼리를 전송한다.
+% DNS 서버는 정보에 대해 즉각적으로 응답하거나 클라이언트를 대신해 다른 DNS 서버에 요청을 한다.
+
+@ DNS 패킷 구조 분석
+ DNS는 단일 전송 메커니즘을 사용하는 다른 애플리케이션과는 다르게 UDP와 TCP를 모두 사용한다.
+ - UDP : 일반적인 응답/요청
+ - TCP : 전송 대역이 큰 응답/요청
+
+# DNS는 4개의 기본 섹션으로 구성되어 있다.
+ 질문 ( Questions ) 
+ 응답 ( Answer )
+ 권한 ( Authority )
+ 추가 ( Additional )
+
+@ DNS 패킷
+# Transaction ID 
+ Transaction ID는 DNS 쿼리와 응답에 연관된다.
+ 사용자는 이 필드에서 DNS에 관련된 모든 것을 보기 위한 값을 필터링 함수가 있다. (dns.id == 0xa77f)
+# Flags
+ 쿼리 특성을 정의하는 수 많은 필드로 구성되어 있다. 
+ XXXX XXXX XXXX XXXX
+ 0 : Response : Message is a query
+  000 0 : Opcode : Standard query (0)
+        x
+         0 : Truncated : Message is not truncated
+          1 : Recursion desired : Do query recursively
+            x
+             0 : Z : reserved (0)
+              x
+               0 : Non-authenticated data : unacceptable
+                 xxxx
+% Response(Query)
+ 쿼리/응답 비트는 요청(0)인지 응답(1)인지 표시한다.
+ 위의 패킷은 0이므로 패킷이 요청이라는 것을 알 수 있다.
+ dns.flags.response==1 (응답), dns.flags.response==0(요청)을 표시하는 필터를 작성할 수 있다.
+% Opcode
+ Opcode는 쿼리의 유형을 지정합니다. 일반적으로 일반적인 요청에 대해 0000을 포함한다.
+% Authoritative Answer
+ 도메인 이름에 대해 믿을 수 있는 서버로 부터의 응답임을 표시한다.
+% Truncation
+ 응답이 길어서 잘렸는지에 대해서 알려준다. 
+ 패킷이 잘리는 것은 자주 볼 수 없는 광경이다.
+% Recurision Desired 
+ 재귀쿼리의 사용을 알려주는 부분, 대부분의 DNS는 재귀 쿼리를 사용한다.
+% Recursion Available 
+ 응답에서 정의된 재귀가 사용 가능 한지를 표시한다.
+% Reserved
+ 이 필드는 0으로 설정된다
+% Response Code
+ 응답에서 오류가 존재하는지 표시한다. 
+ 0 - 오류없음
+ 1 - 형식 오류 - 쿼리를 설명할 수 없음
+ 2 - 서버 실패 - 네임 서버에 문제로 실행 불가
+ 3 - 네임 오류 - 이름이 존재하지 않음
+ 4 - 실행되지 않음
+ 5 - 거부 - 네임 서버 규정으로 수행하지 못함
+% Questions Count - 질문의 숫자를 표시합니다. 일반적으로 한 패킷당 한개의 질문을 볼 수 있습니다.
+% Answer RRs - Answer RRs 수를 표시
+% Authority RRS - Authority RRs 응답 수를 표시한다.
+% Additional RRs - Addtional RRs 응답 수를 표시한다.
+
+
